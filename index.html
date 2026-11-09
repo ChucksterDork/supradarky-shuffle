@@ -32,7 +32,7 @@ function makeDestination(hostId,prefix){
  const host=$(hostId);host.replaceChildren();
  const modeLabel=document.createElement('label');modeLabel.textContent='Add these tracks to';
  const mode=document.createElement('select');mode.id=prefix+'Mode';mode.className='destinationField';
- mode.add(new Option('Create a new library','new'),new Option('Add to an existing library','existing'));
+ mode.add(new Option('Create a new library','new'));mode.add(new Option('Add to an existing library','existing'));
  const existingWrap=document.createElement('div');existingWrap.id=prefix+'ExistingWrap';
  const existingLabel=document.createElement('label');existingLabel.textContent='Find an existing collection or soundtrack';
  const search=document.createElement('input');search.type='search';search.id=prefix+'Search';search.className='destinationField';search.placeholder='Start typing a library name…';search.setAttribute('list',prefix+'Choices');
@@ -41,7 +41,7 @@ function makeDestination(hostId,prefix){
  const newWrap=document.createElement('div');newWrap.id=prefix+'NewWrap';
  const kindLabel=document.createElement('label');kindLabel.textContent='Import as';
  const kind=document.createElement('select');kind.id=prefix+'Kind';kind.className='destinationField';
- kind.add(new Option('Collection','collection'),new Option('Soundtrack','soundtrack'));
+ kind.add(new Option('Collection','collection'));kind.add(new Option('Soundtrack','soundtrack'));
  const nameLabel=document.createElement('label');nameLabel.textContent='New collection name';nameLabel.id=prefix+'NameLabel';
  const name=document.createElement('input');name.type='text';name.id=prefix+'Name';name.className='destinationField';name.placeholder='Name your library';
  newWrap.append(kindLabel,kind,nameLabel,name);
