@@ -9,7 +9,7 @@
 <div id="importPlaylistBranch" class="hidden importBranch"><h3>Import a playlist</h3><p class="small">Imports individual YouTube videos with their titles. Public and unlisted playlists are supported.</p><div style="margin-top:12px"><label for="playlistUrl">YouTube playlist URL</label><input id="playlistUrl" type="url" placeholder="https://www.youtube.com/playlist?list=..." style="display:block;width:100%;padding:12px;background:#111521;border:1px solid #48506c;border-radius:9px;color:white;margin:8px 0 12px"><button id="importPlaylist" type="button">Find playlist tracks</button></div><div id="playlistPreview" class="hidden"><div id="playlistPreviewCount" class="small" style="margin:12px 0"></div><div id="playlistDestination"></div><div class="controls"><button id="savePlaylist" type="button">Import these tracks</button><button id="cancelPlaylist" class="secondary" type="button">Cancel</button></div></div><div id="playlistStatus" class="small" role="status" aria-live="polite" style="margin:12px 0"></div><p class="small">Individual video titles are searchable. Private playlists require different authorization. Large playlists may take a moment to inspect.</p></div>
 <div id="importVideoBranch" class="hidden importBranch"><h3>Import a timestamped video</h3><p class="small">Detect and review individual songs, then create a new collection/soundtrack or add them to an existing one.</p><label for="soundtrackUrl">YouTube soundtrack video URL</label><input id="soundtrackUrl" type="url" placeholder="https://www.youtube.com/watch?v=M1MPVbZ-vTg" style="display:block;width:100%;padding:12px;background:#111521;border:1px solid #48506c;border-radius:9px;color:white;margin:8px 0 12px"><button id="inspectSoundtrack" type="button">Find soundtrack tracks</button><div id="soundtrackStatus" role="status" class="small" style="margin:12px 0"></div><div id="soundtrackPreview" class="hidden"><div id="soundtrackDestination"></div><p class="small">Review or edit the list below. One track per line: <code>MM:SS Song title</code> or <code>HH:MM:SS Song title</code>. Each track ends when the next begins; the last ends at the video's duration. Delete unwanted lines.</p><textarea id="soundtrackTracklist" rows="10" style="display:block;width:100%;background:#111521;border:1px solid #48506c;border-radius:9px;color:white;padding:12px;margin:8px 0"></textarea><div class="controls"><button id="importSoundtrack" type="button">Import individual songs</button><button id="cancelSoundtrack" type="button" class="secondary">Cancel</button></div></div></div>
 <div id="importFilesBranch" class="hidden importBranch"><h3>Import a file or links</h3><label for="genericLibraryKind">Add as</label><select id="genericLibraryKind" style="display:block;width:100%;padding:12px;background:#111521;border:1px solid #48506c;border-radius:9px;color:white;margin:8px 0 12px"><option value="collection">Collection</option><option value="soundtrack">Soundtrack</option></select><label for="collectionName">Library name</label><input id="collectionName" type="text" placeholder="e.g. Performed Game Music" style="display:block;width:100%;padding:12px;background:#111521;border:1px solid #48506c;border-radius:9px;color:white;margin:8px 0 12px"><label class="filebtn" for="file">Import CSV / TXT file</label><input id="file" type="file" accept=".csv,.txt,text/csv,text/plain"><p class="small">Import a CSV with YouTube video URLs and optional song metadata, or a TXT file containing one YouTube video URL per line. For YouTube playlists, choose the playlist import option.</p><label for="links">Or paste YouTube video links (one per line)</label><textarea id="links" rows="4" placeholder="https://youtu.be/..." style="display:block;width:100%;background:#111521;border:1px solid #48506c;border-radius:9px;color:white;padding:12px;margin:8px 0"></textarea><button id="addLinks" class="secondary">Add pasted links</button><p class="small">For soundtrack browsing, import a CSV with columns such as <b>URL, Title, Game, Composer</b>. Plain video links will play, but will display generic titles until metadata is provided.</p><div id="importStatus" class="small" role="status" style="margin-top:12px"></div></div>
-<details style="margin-top:18px"><summary style="cursor:pointer;font-weight:650">Manage saved libraries</summary><p class="small">Enable, rename, reclassify or remove your music libraries. Changes are saved in this browser.</p><div id="collections"></div><div id="sourceManager" class="hidden" style="margin-top:14px;padding:14px;border:1px solid #48506c;border-radius:10px"><h3 id="sourceManagerTitle" style="margin-top:0">Manage source videos</h3><p class="small">Remove a single soundtrack video and all its timestamped songs without deleting the collection.</p><div id="sourceManagerRows"></div><button id="closeSourceManager" class="secondary" type="button">Close</button></div><div class="controls"><button id="clear" class="secondary">Clear all collections</button></div></details></section></main><script>
+<details style="margin-top:18px"><summary style="cursor:pointer;font-weight:650">Manage saved libraries</summary><p class="small">Enable, rename, reclassify or remove your music libraries. Changes are saved in this browser.</p><div style="border:1px solid #48506c;border-radius:12px;padding:14px;margin:14px 0"><h3 style="margin:0 0 8px">Back up or transfer your music</h3><p class="small">Export your complete library to move it between computers. Import replaces your current library; Merge adds missing libraries and tracks while keeping existing music.</p><div class="controls"><button type="button" id="exportLibrary">Export Library</button><button type="button" id="importLibrary" class="secondary">Import Library (Replace)</button><button type="button" id="mergeLibrary" class="secondary">Merge Library</button></div><input type="file" id="libraryBackupFile" accept=".json,application/json" class="hidden"><p id="backupStatus" class="small" role="status" aria-live="polite"></p></div><div id="collections"></div><div id="sourceManager" class="hidden" style="margin-top:14px;padding:14px;border:1px solid #48506c;border-radius:10px"><h3 id="sourceManagerTitle" style="margin-top:0">Manage source videos</h3><p class="small">Remove a single soundtrack video and all its timestamped songs without deleting the collection.</p><div id="sourceManagerRows"></div><button id="closeSourceManager" class="secondary" type="button">Close</button></div><div class="controls"><button id="clear" class="secondary">Clear all collections</button></div></details></section></main><script>
 const SHEET='https://docs.google.com/spreadsheets/d/1Hl11drnPsymQADL1c7bP7p53AU0udT63uEsvyyS2F70/export?format=csv&gid=0';
 const $=id=>document.getElementById(id);let collections=[],tracks=[],queue=[],played=[],history=[],current=-1,player=null,apiReady=false,skipTimer=null,advanceBusy=false,segmentTimer=null,libraryTab='collection',selectedLibrary=null,playMode='shuffle',activeTrackKeys=null;
 function parseCSV(s){s=s.replace(/^\uFEFF/,'');let rows=[],row=[],field='',quoted=false;for(let i=0;i<s.length;i++){let c=s[i];if(quoted){if(c==='"'&&s[i+1]==='"'){field+='"';i++}else if(c==='"')quoted=false;else field+=c}else if(c==='"')quoted=true;else if(c===','){row.push(field);field=''}else if(c==='\n'||c==='\r'){if(c==='\r'&&s[i+1]==='\n')i++;row.push(field);rows.push(row);row=[];field=''}else field+=c}if(field||row.length){row.push(field);rows.push(row)}return rows}
@@ -148,6 +148,79 @@ $('importSoundtrack').onclick=()=>{const status=$('soundtrackStatus');try{
 $('file').onchange=async e=>{let f=e.target.files?.[0];if(!f)return;try{let name=$('collectionName').value.trim()||f.name.replace(/\.(csv|txt)$/i,'');addCollection(name,importAny(await f.text()),false,$('genericLibraryKind').value);$('file').value=''}catch(err){$('importStatus').textContent='Import failed: '+err.message}};
 $('addLinks').onclick=()=>{try{let name=$('collectionName').value.trim();if(!name)throw Error('Enter a collection name first.');addCollection(name,importAny($('links').value),false,$('genericLibraryKind').value);$('links').value=''}catch(e){$('importStatus').textContent=e.message}};
 
+// Transfer music between browsers without changing the existing storage schema.
+function validBackupLibraries(value){
+ if(!Array.isArray(value))throw Error('This is not a VGM Radio library backup (expected a JSON array).');
+ const ids=new Set();
+ return value.map((c,i)=>{
+  if(!c||typeof c!=='object'||typeof c.name!=='string'||!c.name.trim()||!Array.isArray(c.tracks))throw Error('Library '+(i+1)+' is missing its name or tracks.');
+  if(c.tracks.some(t=>!t||typeof t!=='object'||typeof t.id!=='string'||!/^[-\w]{11}$/.test(t.id)))throw Error('Library “'+c.name+'” contains invalid YouTube track IDs.');
+  const id=typeof c.id==='string'&&c.id&&!ids.has(c.id)?c.id:'import-'+i+'-'+Date.now();ids.add(id);
+  return {...c,id,name:c.name.trim(),kind:c.kind==='soundtrack'?'soundtrack':'collection',enabled:c.enabled!==false,tracks:c.tracks.map(t=>({...t}))};
+ });
+}
+function saveImportedLibraries(next){
+ const oldRaw=localStorage.getItem('supraCollectionsV2');
+ const raw=JSON.stringify(next);
+ try{
+  localStorage.setItem('supraCollectionsV2',raw);
+  if(localStorage.getItem('supraCollectionsV2')!==raw)throw Error('Browser did not retain the new data.');
+ }catch(e){
+  try{if(oldRaw===null)localStorage.removeItem('supraCollectionsV2');else localStorage.setItem('supraCollectionsV2',oldRaw)}catch(_){}
+  throw Error('Could not save the imported library. Your previous music was left unchanged. '+e.message);
+ }
+ collections=next;
+ rebuildLibrary();
+}
+function mergeBackupLibraries(incoming){
+ const next=collections.map(c=>({...c,tracks:c.tracks.slice()}));
+ let addedLibraries=0,addedTracks=0;
+ for(const inc of incoming){
+  // A matching ID is authoritative; otherwise use name and type to match exports from different browsers.
+  let target=next.find(c=>c.id===inc.id)||next.find(c=>c.name.trim().toLocaleLowerCase()===inc.name.trim().toLocaleLowerCase()&&(c.kind==='soundtrack'?'soundtrack':'collection')===inc.kind);
+  if(!target){
+   let id=inc.id;
+   if(next.some(c=>c.id===id))id='merged-'+Date.now()+'-'+Math.random().toString(36).slice(2);
+   next.push({...inc,id,tracks:inc.tracks.slice()});addedLibraries++;addedTracks+=inc.tracks.length;continue;
+  }
+  const keys=new Set(target.tracks.map(trackKey));
+  for(const track of inc.tracks){const key=trackKey(track);if(!keys.has(key)){target.tracks.push(track);keys.add(key);addedTracks++}}
+ }
+ return {next,addedLibraries,addedTracks};
+}
+$('exportLibrary').onclick=()=>{
+ const status=$('backupStatus');
+ try{
+  const raw=JSON.stringify(collections,null,2);
+  const blob=new Blob([raw],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='VGM-Radio-Library-'+new Date().toISOString().slice(0,10)+'.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);
+  status.textContent='Export prepared: '+collections.length+' libraries, '+collections.reduce((n,c)=>n+c.tracks.length,0).toLocaleString()+' tracks.';
+ }catch(e){status.textContent='Export failed: '+e.message}
+};
+let backupImportMode='replace';
+$('importLibrary').onclick=()=>{backupImportMode='replace';$('libraryBackupFile').value='';$('libraryBackupFile').click()};
+$('mergeLibrary').onclick=()=>{backupImportMode='merge';$('libraryBackupFile').value='';$('libraryBackupFile').click()};
+$('libraryBackupFile').onchange=async e=>{
+ const file=e.target.files?.[0];if(!file)return;
+ const status=$('backupStatus');
+ try{
+  const incoming=validBackupLibraries(JSON.parse(await file.text()));
+  const incomingCount=incoming.reduce((n,c)=>n+c.tracks.length,0);
+  if(backupImportMode==='replace'){
+   if(!confirm('Replace ALL '+collections.length+' libraries on this computer with '+incoming.length+' libraries ('+incomingCount.toLocaleString()+' tracks) from “'+file.name+'”? This cannot be undone unless you have exported your current library.')){status.textContent='Import canceled. Nothing changed.';return}
+   saveImportedLibraries(incoming);
+   status.textContent='Restored '+incoming.length+' libraries and '+incomingCount.toLocaleString()+' tracks.';
+  }else{
+   const result=mergeBackupLibraries(incoming);
+   if(!result.addedLibraries&&!result.addedTracks){status.textContent='Nothing new to merge. Your existing library is unchanged.';return}
+   if(!confirm('Merge “'+file.name+'”? Add '+result.addedLibraries+' new libraries and '+result.addedTracks.toLocaleString()+' missing tracks, keeping your existing music?')){status.textContent='Merge canceled. Nothing changed.';return}
+   saveImportedLibraries(result.next);
+   status.textContent='Merged '+result.addedLibraries+' libraries and '+result.addedTracks.toLocaleString()+' tracks.';
+  }
+ }catch(err){status.textContent='Could not import backup: '+err.message}
+ finally{e.target.value=''}
+};
 $('clear').onclick=()=>{if(!confirm('Remove ALL saved collections from this browser?'))return;collections=[];saveCollections();rebuildLibrary()};
 $('search').oninput=()=>{let q=$('search').value.trim().toLowerCase(),root=$('results');root.replaceChildren();if(q.length<2)return;let found=tracks.map((t,i)=>({...t,i})).filter(t=>[t.title,t.game,t.composer,t.platform,t.num,t.sourceTitle].some(x=>String(x).toLowerCase().includes(q))).slice(0,35);for(let t of found){let b=document.createElement('button');b.className='result';b.textContent=`${t.title} — ${t.game}${t.composer?' • '+t.composer:''}`;b.onclick=()=>{ensureApi();queue=queue.filter(i=>i!==t.i);playIndex(t.i)};root.append(b)}if(!found.length)root.textContent='No matching tracks'};
 
